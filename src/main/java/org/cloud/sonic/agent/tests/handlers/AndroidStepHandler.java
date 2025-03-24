@@ -2025,6 +2025,9 @@ public class AndroidStepHandler {
 
     public WebElement findWebEle(String selector, String pathValue) throws SonicRespException {
         WebElement we = null;
+        //修改by刘澍霖：删除扩展pathvalue格式，可以传递更多的信息
+        pathValue = SinovaAndroidStepHandler.removeExtendedCharacterInfo(pathValue);
+
         pathValue = TextHandler.replaceTrans(pathValue, globalParams);
         int wait = 0;
         String errMsg = "";
@@ -2253,16 +2256,20 @@ public class AndroidStepHandler {
         }
     }
 
+
     public void webViewClick(HandleContext handleContext, String des, String selector, String pathValue) {
         handleContext.setStepDes("点击" + des);
         pathValue = TextHandler.replaceTrans(pathValue, globalParams);
         handleContext.setDetail("点击" + selector + ": " + pathValue);
         try {
-            findWebEle(selector, pathValue).click();
+            //修改by刘澍霖
+            SinovaAndroidStepHandler.webviewClick(AndroidStepHandler.this,chromeDriver,handleContext,des,selector,pathValue);
+//            findWebEle(selector, pathValue).click();
         } catch (Exception e) {
             handleContext.setE(e);
         }
     }
+
 
     public void webViewSendKeys(HandleContext handleContext, String des, String selector, String pathValue, String keys) {
         keys = TextHandler.replaceTrans(keys, globalParams);
@@ -2750,4 +2757,5 @@ public class AndroidStepHandler {
             log.sendStepLog(StepType.PASS, stepDes, detail);
         }
     }
+
 }
