@@ -241,6 +241,8 @@ public class AndroidDeviceBridgeTool implements ApplicationListener<ContextRefre
         return size;
     }
 
+
+
     /**
      * @param iDevice
      * @param command

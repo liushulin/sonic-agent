@@ -37,6 +37,30 @@ public class SinovaAndroidStepHandler {
 
 
     /**
+     * 针对不同的分辨率转换坐标
+     * @param androidStepHandler
+     * @param baseX 录制时的基准坐标
+     * @param baseY 录制时的基准坐标
+     * @param baseWidth 录制时的设备的逻辑像素宽度
+     * @param baseHeight 录制时的设备的逻辑像素高度
+     * @return
+     * @throws Exception
+     */
+    public static int[] convertCoordinatesByResolution(AndroidStepHandler androidStepHandler,int baseX,int baseY,int baseWidth,int baseHeight) throws Exception{
+
+        //计算当前设备的逻辑像素宽度和高度
+        double currentWidth = (double) androidStepHandler.screenWidth / ((double) androidStepHandler.density / 160);
+        double currentHeight = (double) androidStepHandler.screenHeight / ((double) androidStepHandler.density / 160);
+
+        int newX = (int) (baseX * currentWidth / baseWidth);
+        int newY = (int) (baseY * currentHeight / baseHeight);
+
+        return new int[]{newX,newY};
+    }
+
+
+
+    /**
      *
      * @param androidStepHandler
      * @param handleContext
@@ -51,16 +75,21 @@ public class SinovaAndroidStepHandler {
 
             JSONObject jo = JSONObject.parseObject(extra);
             String type = jo.getString("type");
-            if(type.equals("css::after")){
-                //解析目标 x和y值 作为点击的坐标
+            if(type.equals("css::coord")){
+                //解析采集设备的基准逻辑坐标
                 int x = jo.getIntValue("x",0);
                 int y = jo.getIntValue("y",0);
+                //解析采集设备的基准逻辑宽高
+                int baseWidth = jo.getIntValue("w",0);
+                int baseHeight = jo.getIntValue("h",0);
+                //针对不同分辨率转换坐标
+                int[] newXY = convertCoordinatesByResolution(androidStepHandler,x,y,baseWidth,baseHeight);
                 WebElement element = androidStepHandler.findWebEle(selector, pathValue);
-                int target_X = element.getLocation().getX() + x;
-                int target_Y = element.getLocation().getY() + y;
+                int target_X = element.getLocation().getX() + newXY[0];
+                int target_Y = element.getLocation().getY() + newXY[1];
 
                 handleContext.setStepDes(StepTitle);
-                handleContext.setDetail("处理::after类型的元素，首先找到它的父元素【"+pathValue+"】，点击相对于父元素的坐标（"+x+","+y+"），点击相对于屏幕原点的坐标（"+target_X+","+target_Y+"）");
+                handleContext.setDetail("处理::after类型的元素，首先找到它的父元素【"+pathValue+"】，处理不同分辨率的坐标转换：相对于父元素的坐标（"+newXY[0]+","+newXY[1]+"），点击相对于屏幕原点的坐标（"+target_X+","+target_Y+"）");
 
                 chromeDriver.executeScript("document.elementFromPoint(arguments[0],arguments[1]).click()",target_X,target_Y);
             }
@@ -71,6 +100,11 @@ public class SinovaAndroidStepHandler {
             androidStepHandler.findWebEle(selector,pathValue).click();
         }
     }
+
+
+
+
+
 
 }
 

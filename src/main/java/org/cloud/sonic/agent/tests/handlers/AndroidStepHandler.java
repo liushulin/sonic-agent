@@ -101,8 +101,11 @@ public class AndroidStepHandler {
     private static final int POCO_ELEMENT_TYPE = 1003;
 
     // 屏幕的宽度与高度信息
-    private int screenWidth = 0;
-    private int screenHeight = 0;
+    public int screenWidth = 0;
+    public int screenHeight = 0;
+
+    //屏幕密度，默认480
+    public int density = 480;
 
     public String getTargetPackage() {
         return targetPackage;
@@ -157,10 +160,18 @@ public class AndroidStepHandler {
         String[] winSize = screenSizeInfo.split("x");
         screenWidth = BytesTool.getInt(winSize[0]);
         screenHeight = BytesTool.getInt(winSize[1]);
+
+        //修改by刘澍霖 增加设备的densityDpi
+        try{
+            density = Integer.parseInt(iDevice.getProperty(IDevice.PROP_DEVICE_DENSITY));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
         log.androidInfo("Android", iDevice.getProperty(IDevice.PROP_BUILD_VERSION),
                 iDevice.getSerialNumber(), iDevice.getProperty(IDevice.PROP_DEVICE_MANUFACTURER),
                 iDevice.getProperty(IDevice.PROP_DEVICE_MODEL),
-                screenSizeInfo);
+                screenSizeInfo, "读取设备实际值："+iDevice.getProperty(IDevice.PROP_DEVICE_DENSITY)+"，计算使用："+density);
     }
 
     public void switchWindowMode(HandleContext handleContext, boolean isMulti) throws SonicRespException {

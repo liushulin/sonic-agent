@@ -221,7 +221,7 @@ public class LogUtil {
      * @des 发送安卓Info
      * @date 2021/8/16 19:59
      */
-    public void androidInfo(String platform, String version, String udId, String manufacturer, String model, String size) {
+    public void androidInfo(String platform, String version, String udId, String manufacturer, String model, String size, String density) {
         sendStepLog(StepType.INFO, "",
                 "设备操作系统：" + platform
                         + "<br>操作系统版本：" + version
@@ -229,6 +229,8 @@ public class LogUtil {
                         + "<br>设备制造商：" + manufacturer
                         + "<br>设备型号：" + model
                         + "<br>设备分辨率：" + size
+                        + "<br>设备density密度：" + density
+
         );
     }
 }

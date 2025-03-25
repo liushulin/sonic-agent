@@ -64,6 +64,8 @@ public class AndroidDeviceStatusListener implements AndroidDebugBridge.IDeviceCh
         deviceDetail.put("size", AndroidDeviceBridgeTool.getScreenSize(device));
         deviceDetail.put("cpu", device.getProperty(IDevice.PROP_DEVICE_CPU_ABI));
         deviceDetail.put("manufacturer", device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER));
+        //修改by刘澍霖 增加设备的densityDpi
+        deviceDetail.put("density", device.getProperty(IDevice.PROP_DEVICE_DENSITY));
         TransportWorker.send(deviceDetail);
     }
 
