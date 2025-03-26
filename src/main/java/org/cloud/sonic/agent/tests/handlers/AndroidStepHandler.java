@@ -2216,17 +2216,19 @@ public class AndroidStepHandler {
     }
 
     public void webElementScrollToView(HandleContext handleContext, String des, String selector, String pathValue) {
-        handleContext.setStepDes("滚动页面元素 " + des + " 至顶部可见");
-        WebElement we;
-        try {
-            we = findWebEle(selector, pathValue);
-        } catch (Exception e) {
-            handleContext.setE(e);
-            return;
-        }
-        JavascriptExecutor jsExe = chromeDriver;
-        jsExe.executeScript("arguments[0].scrollIntoView();", we);
-        handleContext.setDetail("控件元素 " + selector + ":" + pathValue + " 滚动至页面顶部");
+//        handleContext.setStepDes("滚动页面元素 " + des + " 至顶部可见");
+//        WebElement we;
+//        try {
+//            we = findWebEle(selector, pathValue);
+//        } catch (Exception e) {
+//            handleContext.setE(e);
+//            return;
+//        }
+//        JavascriptExecutor jsExe = chromeDriver;
+//        jsExe.executeScript("arguments[0].scrollIntoView();", we);
+//        handleContext.setDetail("控件元素 " + selector + ":" + pathValue + " 滚动至页面顶部");
+        //修改By刘澍霖 使用自定义的实现
+        SinovaAndroidStepHandler.webElementScrollToView(AndroidStepHandler.this,chromeDriver,handleContext,des,selector,pathValue);
     }
 
     public void isExistWebViewEle(HandleContext handleContext, String des, String selector, String pathValue, boolean expect) {
@@ -2616,6 +2618,7 @@ public class AndroidStepHandler {
             case "publicStep" -> publicStep(handleContext, step.getString("content"), step.getJSONArray("pubSteps"));
             case "setDefaultFindWebViewElementInterval" ->
                     setDefaultFindWebViewElementInterval(handleContext, step.getInteger("content"), step.getInteger("text"));
+            // webview 滚动至元素可见
             case "webElementScrollToView" ->
                     webElementScrollToView(handleContext, eleList.getJSONObject(0).getString("eleName"),
                             eleList.getJSONObject(0).getString("eleType"),

@@ -2,10 +2,17 @@ package org.cloud.sonic.agent.tests.handlers;
 
 import com.alibaba.fastjson2.JSONObject;
 import org.cloud.sonic.agent.common.models.HandleContext;
+import org.cloud.sonic.agent.tests.LogUtil;
+import org.cloud.sonic.driver.common.tool.SonicRespException;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,7 +68,7 @@ public class SinovaAndroidStepHandler {
 
 
     /**
-     *
+     * 自定义 webview click 方法
      * @param androidStepHandler
      * @param handleContext
      * @param des
@@ -75,7 +82,7 @@ public class SinovaAndroidStepHandler {
 
             JSONObject jo = JSONObject.parseObject(extra);
             String type = jo.getString("type");
-            if(type.equals("css::coord")){
+            if("css::coord".equals(type)){
                 //解析采集设备的基准逻辑坐标
                 int x = jo.getIntValue("x",0);
                 int y = jo.getIntValue("y",0);
@@ -92,6 +99,9 @@ public class SinovaAndroidStepHandler {
                 handleContext.setDetail("处理::after类型的元素，首先找到它的父元素【"+pathValue+"】，处理不同分辨率的坐标转换：相对于父元素的坐标（"+newXY[0]+","+newXY[1]+"），点击相对于屏幕原点的坐标（"+target_X+","+target_Y+"）");
 
                 chromeDriver.executeScript("document.elementFromPoint(arguments[0],arguments[1]).click()",target_X,target_Y);
+            }else{
+                //按原来的规范点击
+                androidStepHandler.findWebEle(selector,pathValue).click();
             }
 
 
@@ -99,6 +109,69 @@ public class SinovaAndroidStepHandler {
             //按原来的规范点击
             androidStepHandler.findWebEle(selector,pathValue).click();
         }
+    }
+
+
+    /**
+     * 自定义 webview moveToElement 方法
+     * @param androidStepHandler
+     * @param handleContext
+     * @param des
+     * @param selector
+     * @param pathValue
+     */
+    public static void webElementScrollToView(AndroidStepHandler androidStepHandler,ChromeDriver chromeDriver,HandleContext handleContext, String des, String selector, String pathValue) {
+        //是否包含自定义扩展
+        if(pathValue.contains(FGF)){
+            handleContext.setStepDes("滚动页面元素 " + des + " 至可见，因元素在swiper中，循环滚动swiper每一页直至元素可见");
+            WebElement we;
+            try {
+                we = androidStepHandler.findWebEle(selector, pathValue);
+            } catch (Exception e) {
+                handleContext.setE(e);
+                return;
+            }
+
+            String p = (pathValue.split(FGFRegex))[0].trim();
+            String extra = pathValue.split(FGFRegex)[1].trim();
+
+            JSONObject jo = JSONObject.parseObject(extra);
+            String swiperTag = jo.getString("swiper");
+            if(swiperTag!=null){
+                WebElement swiperElement = null;
+                try {
+                    swiperElement = androidStepHandler.findWebEle(selector, swiperTag);
+                } catch (Exception e) {
+                    handleContext.setE(e);
+                    return;
+                }
+
+                //滑动到元素可见
+//                WebDriverWait wait = new WebDriverWait(chromeDriver, Duration.ofSeconds(1));
+//                WebElement targetElement = ExpectedConditions.visibilityOfElementLocated(By.cssSelector(p)).apply(chromeDriver);
+                int count = 0;
+                //最多循环的次数
+                while (!we.isDisplayed() && count < 10){
+                    count++;
+                    //滑动swiper到下一页
+                    chromeDriver.executeScript("arguments[0].swiper.slideNext();", swiperElement);
+                }
+            }
+
+        }else{
+            //按原来的逻辑
+            handleContext.setStepDes("滚动页面元素 " + des + " 至顶部可见");
+            WebElement we;
+            try {
+                we = androidStepHandler.findWebEle(selector, pathValue);
+            } catch (Exception e) {
+                handleContext.setE(e);
+                return;
+            }
+            chromeDriver.executeScript("arguments[0].scrollIntoView();", we);
+            handleContext.setDetail("控件元素 " + selector + ":" + pathValue + " 滚动至页面顶部");
+        }
+
     }
 
 
