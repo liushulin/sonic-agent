@@ -168,7 +168,40 @@ public class SinovaAndroidStepHandler {
                 handleContext.setE(e);
                 return;
             }
-            chromeDriver.executeScript("arguments[0].scrollIntoView();", we);
+
+            //效果：X轴和Y轴都滚动到屏幕的顶部
+//            chromeDriver.executeScript("arguments[0].scrollIntoView();", we);
+
+
+//            behavior：指定滚动的行为，可取的值有 'auto'（瞬间滚动）和 'smooth'（平滑滚动）。
+//            block：指定元素在垂直方向上的对齐方式，可取的值有 'start'（顶部对齐）、'center'（居中对齐）、'end'（底部对齐）和 'nearest'（最近对齐）。
+//            inline：指定元素在水平方向上的对齐方式，可取的值有 'start'、'center'、'end' 和 'nearest'。
+
+            //只滚动X轴或者Y轴，保持在相应方向上底部对齐，另外一个方向保持不变
+            Long webWidnowWidth = (Long) chromeDriver.executeScript("return window.innerWidth;");
+            Long webWindowHeight = (Long) chromeDriver.executeScript("return window.innerHeight;");
+
+            Double top = (Double) chromeDriver.executeScript("return arguments[0].getBoundingClientRect().top;", we);
+            Double left = (Double) chromeDriver.executeScript("return arguments[0].getBoundingClientRect().left;", we);
+
+            //处理X轴
+            if(left > webWidnowWidth){
+                //元素在右侧
+                chromeDriver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block:'nearest', inline: 'end'});", we);
+            }else if(left < 0){
+                //元素在左侧
+                chromeDriver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth',  block:'nearest',  inline: 'start'});", we);
+            }
+
+            //处理Y轴
+            if(top > webWindowHeight){
+                //元素在右侧
+                chromeDriver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block:'end', inline: 'nearest'});", we);
+            }else if(top < 0){
+                //元素在底部
+                chromeDriver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block:'start', inline: 'nearest'});", we);
+            }
+
             handleContext.setDetail("控件元素 " + selector + ":" + pathValue + " 滚动至页面顶部");
         }
 
