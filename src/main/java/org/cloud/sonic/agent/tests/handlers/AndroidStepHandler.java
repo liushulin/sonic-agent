@@ -2055,6 +2055,8 @@ public class AndroidStepHandler {
                     case "linkText" -> we = chromeDriver.findElement(By.linkText(pathValue));
                     case "partialLinkText" -> we = chromeDriver.findElement(By.partialLinkText(pathValue));
                     case "cssSelectorAndText" -> we = getWebElementByCssAndText(pathValue);
+                    //修改by刘澍霖：增加支持在while循环中，获取当前迭代的控件
+//                    case "androidIterator" -> we = getCurrentIteratorWebElement();
                     default ->
                             log.sendStepLog(StepType.ERROR, "查找控件元素失败", "这个控件元素类型: " + selector + " 不存在!!!");
                 }
@@ -2080,6 +2082,10 @@ public class AndroidStepHandler {
 
     public List<WebElement> findWebEleList(String selector, String pathValue) throws SonicRespException {
         List<WebElement> we = new ArrayList<>();
+
+        //修改by刘澍霖：删除扩展pathvalue格式，可以传递更多的信息
+        pathValue = SinovaAndroidStepHandler.removeExtendedCharacterInfo(pathValue);
+
         pathValue = TextHandler.replaceTrans(pathValue, globalParams);
         int wait = 0;
         String errMsg = "";
@@ -2731,6 +2737,9 @@ public class AndroidStepHandler {
                     eleList.getJSONObject(0).getString("eleValue"),
                     step.getString("content"), step.getString("text"),
                     POCO_ELEMENT_TYPE);
+            //修改by刘澍霖 新增webview元素迭代器
+            case "iteratorWebviewElement" -> SinovaAndroidStepHandler.iteratorWebviewElement(AndroidStepHandler.this,chromeDriver,handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
+                    , eleList.getJSONObject(0).getString("eleValue"));
         }
         switchType(step, handleContext);
     }

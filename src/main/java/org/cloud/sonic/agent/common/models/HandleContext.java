@@ -18,6 +18,7 @@
 package org.cloud.sonic.agent.common.models;
 
 import org.cloud.sonic.driver.common.models.BaseElement;
+import org.openqa.selenium.WebElement;
 
 import java.util.Iterator;
 
@@ -31,9 +32,16 @@ public class HandleContext {
     private String detail;
     private Throwable e;
 
+    //原生控件迭代器
     public Iterator<BaseElement> iteratorElement;
-
+    //当前迭代的原生控件
     public BaseElement currentIteratorElement;
+
+
+    //webelement 迭代器
+    public Iterator<WebElement> iteratorWebElement;
+    //当前迭代的webelement
+    public WebElement currentIteratorWebElement;
 
     public HandleContext() {
         this.stepDes = "";

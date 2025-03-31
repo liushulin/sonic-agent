@@ -78,7 +78,7 @@ public class WhileHandler implements StepHandler {
         if (handleContext.getE() != null) {
             if ("exit while".equals(handleContext.getE().getMessage())) {
                 handleContext.setE(null);
-                thread.getLogTool().sendStepLog(StepType.WARN, "「while」步骤执行退出，循环结束", "");
+                thread.getLogTool().sendStepLog(StepType.INFO, "「while」步骤执行退出，循环结束", "");
             } else {
                 thread.getLogTool().sendStepLog(StepType.WARN, "「while」步骤执行失败，循环结束", "");
             }
