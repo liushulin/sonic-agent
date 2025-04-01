@@ -2620,8 +2620,15 @@ public class AndroidStepHandler {
                     longPressPoint(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleValue")
                             , step.getInteger("content"));
             case "pause" -> pause(handleContext, step.getInteger("content"));
+            //从屏幕中央滑动距离
             case "swipeByDefinedDirection" ->
                     swipeByDefinedDirection(handleContext, step.getString("text"), step.getInteger("content"));
+
+            //修改by刘澍霖，增加在控件内部滑动
+            case "swipeByDefinedDirectionInElement" ->
+                    SinovaAndroidStepHandler.swipeByDefinedDirectionInElement(AndroidStepHandler.this,handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
+                           , eleList.getJSONObject(0).getString("eleValue"), step.getString("text"), step.getInteger("content"));
+
             case "checkImage" ->
                     checkImage(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleValue")
                             , step.getDouble("content"));

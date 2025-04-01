@@ -1,9 +1,11 @@
 package org.cloud.sonic.agent.tests.handlers;
 
 import com.alibaba.fastjson2.JSONObject;
+import org.cloud.sonic.agent.bridge.android.AndroidDeviceBridgeTool;
 import org.cloud.sonic.agent.common.interfaces.StepType;
 import org.cloud.sonic.agent.common.models.HandleContext;
 import org.cloud.sonic.agent.tests.LogUtil;
+import org.cloud.sonic.agent.tools.BytesTool;
 import org.cloud.sonic.driver.android.service.AndroidElement;
 import org.cloud.sonic.driver.common.models.BaseElement;
 import org.cloud.sonic.driver.common.tool.SonicRespException;
@@ -353,6 +355,89 @@ public class SinovaAndroidStepHandler {
                 handleContext.setE(new Exception("未知方向类型设置或者不支持该方向的滚动"));
                 throw new RuntimeException("exit while");
             }
+        }
+    }
+
+
+
+    /**
+     * 在控件元素内部，上下左右滑动指定的距离
+     * @param androidStepHandler
+     * @param handleContext
+     * @param des
+     * @param selector
+     * @param pathValue
+     * @param maxTryTime
+     * @param direction
+     * @throws Exception
+     */
+    public static void swipeByDefinedDirectionInElement(AndroidStepHandler androidStepHandler, HandleContext handleContext, String des, String selector, String pathValue, String direction, int distance) throws Exception {
+        AndroidElement element = androidStepHandler.findEle(selector, pathValue);
+        int x = element.getRect().getX();
+        int width = element.getRect().getWidth();
+        int y = element.getRect().getY();
+        int height = element.getRect().getHeight();
+        int weight = 150;
+        if(y<weight){
+            //如果元素在屏幕顶部，避免触碰到状态栏，做一下容错处理
+            y = y + weight;
+            height = height - weight;
+            if(height<=0){
+                throw new Exception("控件元素顶部过于靠近手机状态栏，容易误操作，控件元素高度小于"+weight+"px，无法完成滑动操作");
+            }
+        }
+
+        switch (direction) {
+            case "up" -> {
+                handleContext.setStepDes("在"+des+"内向上滑动" + distance + "像素");
+                int startY = (y + distance) > height ? (y+height) : (y + distance);
+                int endY = y;
+                int centerX = x + width / 2;
+                try {
+                    AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), centerX, startY, centerX, endY);
+                } catch (Exception e) {
+                    handleContext.setE(e);
+                }
+                handleContext.setDetail("拖动坐标(" + centerX + "," + startY + ")到(" + centerX + "," + endY + ")");
+            }
+            case "down" -> {
+                handleContext.setStepDes("在"+des+"内向下滑动" + distance + "像素");
+                int startY = y;
+                int endY = (y + distance) > height ? (y+height) : (y + distance);
+                int centerX = x + width / 2;
+                try {
+                    AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), centerX, startY, centerX, endY);
+                } catch (Exception e) {
+                    handleContext.setE(e);
+                }
+                handleContext.setDetail("拖动坐标(" + centerX + "," + startY + ")到(" + centerX + "," + endY + ")");
+            }
+            case "left" -> {
+                handleContext.setStepDes("在"+des+"内向左滑动" + distance + "像素");
+                int startX = (x + distance) > width ? (x+width) : (x + distance);
+                int endX = x;
+                int centerY = y + width / 2;
+                try {
+                    AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), startX, centerY, endX, centerY);
+                } catch (Exception e) {
+                    handleContext.setE(e);
+                }
+                handleContext.setDetail("拖动坐标(" + startX + "," + centerY + ")到(" + endX + "," + centerY + ")");
+            }
+            case "right" -> {
+                handleContext.setStepDes("在"+des+"内向右滑动" + distance + "像素");
+                int startX = x;
+                int endX = (x + distance) > width ? (x+width) : (x + distance);
+                int centerY = y + width / 2;
+                try {
+                    AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), startX, centerY, endX, centerY);
+                } catch (Exception e) {
+                    handleContext.setE(e);
+                }
+                handleContext.setDetail("拖动坐标(" + startX + "," + centerY + ")到(" + endX + "," + centerY + ")");
+            }
+            default ->
+                    throw new Exception("Sliding in this direction is not supported. Only up/down/left/right are supported!");
         }
     }
 
