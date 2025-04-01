@@ -65,8 +65,17 @@ public class AssertUtil {
             case "contain" -> {
                 return "包含";
             }
-            case "notContain" -> {
-                return "不包含";
+            case "greaterThan" -> {
+                return "大于";
+            }
+            case "lessThan" -> {
+                return "小于";
+            }
+            case "notLessThan" -> {
+                return "大于等于";
+            }
+            case "notGreaterThan" -> {
+                return "小于等于";
             }
             default -> {
                 return "未知类型";

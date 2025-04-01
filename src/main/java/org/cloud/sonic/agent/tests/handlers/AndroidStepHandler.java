@@ -2519,10 +2519,14 @@ public class AndroidStepHandler {
                 sbLog.append(expect);
                 handleContext.setDetail(sbLog.toString());
                 switch (operation) {
-                    case "equal" -> assertEquals(realValue, expect);
-                    case "notEqual" -> assertNotEquals(realValue, expect);
-                    case "contain" -> assertTrue(realValue.contains(expect));
-                    case "notContain" -> assertFalse(realValue.contains(expect));
+                    case "equal" -> assertEquals(realValue, expect); //相等
+                    case "notEqual" -> assertNotEquals(realValue, expect); //不等于
+                    case "contain" -> assertTrue(realValue.contains(expect)); //包含
+                    case "notContain" -> assertFalse(realValue.contains(expect)); //不包含
+                    case "greaterThan" -> assertTrue(assertTextGreaterOrLess(realValue,expect,operation)); //大于
+                    case "lessThan" -> assertTrue(assertTextGreaterOrLess(realValue,expect,operation)); //小于
+                    case "notLessThan" -> assertTrue(assertTextGreaterOrLess(realValue,expect,operation)); //大于等于
+                    case "notGreaterThan" -> assertTrue(assertTextGreaterOrLess(realValue,expect,operation)); //小于等于
                     default ->
                             throw new SonicRespException("未支持的文本断言操作类型" + operation + "，无法进行文本断言");
                 }
@@ -2533,6 +2537,42 @@ public class AndroidStepHandler {
             handleContext.setE(e);
         }
     }
+
+
+    /**
+     * 修改by刘澍霖 新增加断言文本，判断大于小于
+     * @param realValue
+     * @param expect
+     * @param operation
+     * @return
+     */
+    private boolean assertTextGreaterOrLess(String realValue, String expect, String operation) {
+        try {
+            double realValueDouble = Double.parseDouble(realValue);
+            double expectDouble = Double.parseDouble(expect);
+            switch (operation) {
+                case "greaterThan" -> {
+                    return realValueDouble > expectDouble;  //大于
+                }
+                case "lessThan" -> {
+                    return realValueDouble < expectDouble;  //小于
+                }
+                case "notLessThan" -> {
+                    return realValueDouble >= expectDouble;  //大于等于
+                }
+                case "notGreaterThan" -> {
+                    return realValueDouble <= expectDouble;  //小于等于
+                }
+                default -> {
+                    return false;
+                }
+            }
+        }catch (Exception e){
+            //..
+            return false;
+        }
+    }
+
 
     public void runStep(JSONObject stepJSON, HandleContext handleContext) throws Throwable {
         JSONObject step = stepJSON.getJSONObject("step");
