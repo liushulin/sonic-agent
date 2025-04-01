@@ -820,6 +820,7 @@ public class AndroidStepHandler {
         } catch (SonicRespException e) {
             handleContext.setE(e);
         }
+//        SinovaAndroidStepHandler.motionEventByEle(AndroidStepHandler.this, handleContext, des, selector, pathValue, motionEventType);
     }
 
     public void swipeByDefinedDirection(HandleContext handleContext, String slideDirection, int distance) throws Exception {
@@ -924,12 +925,29 @@ public class AndroidStepHandler {
         }
     }
 
+    /**
+     * 修改by刘澍霖
+     * 持续滑动，一直到指定元素可见
+     * 源代码只支持up 和 down，  扩展支持 left 和 right 滑动。并且原版本的 up 和 down 滑动是针对整个屏幕的，而不是针对元素的。
+     * 扩展内容：
+     * 1、up、down、left、right：如果控件pathvalue中携带了自定义的 @P 父元素，那么滑动时就是针对父元素滑动，不是针对整个屏幕。
+     * 2、如果没有携带@P 父元素，up和down保持针对整个屏幕滑动，left和right提示用户不合法
+     */
     public void scrollToEle(HandleContext handleContext, String des, String selector, String pathValue, int maxTryTime,
                             String direction) {
-        String directionStr = "down".equals(direction) ? "向下" : "向上";
+        String directionStr = "";
+        if ("up".equals(direction)) {
+            directionStr = "向上";
+        }else if ("down".equals(direction)) {
+            directionStr = "向下";
+        }else if ("left".equals(direction)) {
+            directionStr = "向左";
+        }else if ("right".equals(direction)) {
+            directionStr = "向右";
+        }
+
         handleContext.setStepDes(directionStr + "滚动到控件 " + des + " 可见");
 
-        final int xOffset = 20;
         boolean scrollToSuccess = false;
         int tryScrollNums = 0;
 
@@ -941,18 +959,18 @@ public class AndroidStepHandler {
                     break;
                 }
             } catch (Exception ignored) {
+                //.....
             }
 
             try {
-                if ("up".equals(direction)) {
-                    AndroidTouchHandler.swipe(iDevice, xOffset, screenHeight / 3, xOffset, screenHeight * 2 / 3, 1000);
-                } else if ("down".equals(direction)) {
-                    AndroidTouchHandler.swipe(iDevice, xOffset, screenHeight * 2 / 3, xOffset, screenHeight / 3, 1000);
-                } else {
-                    handleContext.setE(new Exception("未知的滚动到方向类型设置"));
-                }
+                //调用自定义的扩展
+                SinovaAndroidStepHandler.scrollToEle(AndroidStepHandler.this, handleContext, des, selector, pathValue,maxTryTime,direction);
             } catch (Exception e) {
                 handleContext.setE(e);
+                //退出循环
+                if("exit while".equals(e.getMessage())){
+                    break;
+                }
             }
 
             tryScrollNums++;
@@ -961,7 +979,7 @@ public class AndroidStepHandler {
         if (scrollToSuccess) {
             handleContext.setDetail("实际滚动：" + tryScrollNums + "次后控件" + des + "可见");
         } else {
-            handleContext.setE(new Exception("尝试滚动：" + maxTryTime + "次后控件" + des + "依然不可见"));
+            handleContext.setE(new Exception("尝试滚动：" + maxTryTime + "次后控件" + des + "依然不可见（备注：请检查控件元素信息是否准确，@P格式是否准确。如果希望向左或者向右滚动，必须设置@P父控件元素信息）"));
         }
     }
 
@@ -2130,6 +2148,10 @@ public class AndroidStepHandler {
 
     public AndroidElement findEle(String selector, String pathValue, Integer retryTime) throws SonicRespException {
         AndroidElement we = null;
+
+        //修改by刘澍霖：删除扩展pathvalue格式，可以传递更多的信息
+        pathValue = SinovaAndroidStepHandler.removeExtendedCharacterInfo(pathValue);
+
         pathValue = TextHandler.replaceTrans(pathValue, globalParams);
         switch (selector) {
             case "androidIterator" -> we = androidDriver.findElement(pathValue);
@@ -2182,6 +2204,10 @@ public class AndroidStepHandler {
 
     public List<AndroidElement> findEleList(String selector, String pathValue) throws SonicRespException {
         List<AndroidElement> androidElements = null;
+
+        //修改by刘澍霖：删除扩展pathvalue格式，可以传递更多的信息
+        pathValue = SinovaAndroidStepHandler.removeExtendedCharacterInfo(pathValue);
+
         pathValue = TextHandler.replaceTrans(pathValue, globalParams);
         switch (selector) {
             case "id" -> androidElements = androidDriver.findElementList(AndroidSelector.Id, pathValue);
@@ -2551,6 +2577,7 @@ public class AndroidStepHandler {
             case "isExistEle" ->
                     isExistEle(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
                             , eleList.getJSONObject(0).getString("eleValue"), step.getBoolean("content"));
+            // android 向上或者向下 滚动到控件元素，附带：尝试最大滚动次数，知道控件元素可见位置
             case "scrollToEle" ->
                     scrollToEle(handleContext, eleList.getJSONObject(0).getString("eleName"),
                             eleList.getJSONObject(0).getString("eleType"),
@@ -2571,6 +2598,7 @@ public class AndroidStepHandler {
             case "swipe" ->
                     swipePoint(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleValue")
                             , eleList.getJSONObject(1).getString("eleName"), eleList.getJSONObject(1).getString("eleValue"));
+            // 拖拽控件元素 、 （长按）控件元素拖拽移动，这两个都会执行 swipe2 这里
             case "swipe2" ->
                     swipe(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType"), eleList.getJSONObject(0).getString("eleValue")
                             , eleList.getJSONObject(1).getString("eleName"), eleList.getJSONObject(1).getString("eleType"), eleList.getJSONObject(1).getString("eleValue"));

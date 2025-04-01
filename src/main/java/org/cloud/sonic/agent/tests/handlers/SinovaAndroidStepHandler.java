@@ -85,7 +85,7 @@ public class SinovaAndroidStepHandler {
             String extra = (pathValue.split(FGFRegex))[1].trim();
 
             //符合规范（1）：点击父元素控件内的某一个坐标，w和h是获取控件时手机的逻辑像素宽度和高度，x和y是相对于父控件的逻辑像素坐标
-            if(extra.contains("x") && extra.contains("y") && extra.contains("w") && extra.contains("h")){
+            if(extra.contains("x=") && extra.contains("y=") && extra.contains("w=") && extra.contains("h=")){
                 //解析坐标字符串 [x=340,y=22,w=360,h=748]
                 String coordStr = extra.replaceAll("[\\[\\]]", "");
                 String[] coords = coordStr.split(",");
@@ -223,37 +223,136 @@ public class SinovaAndroidStepHandler {
      * @param pathValue
      */
     public static void iteratorWebviewElement(AndroidStepHandler androidStepHandler,ChromeDriver chromeDriver,HandleContext handleContext,String des, String selector, String pathValue){
-        List<WebElement> webElements = null;
+//TODO 后续扩展
+        //        List<WebElement> webElements = null;
+//
+//        if (handleContext.iteratorWebElement == null) {
+//            handleContext.setStepDes("迭代webview控件列表 " + des);
+//            try {
+//                webElements = androidStepHandler.findWebEleList(selector, pathValue);
+//                handleContext.iteratorWebElement = webElements.iterator();
+//            } catch (Throwable e) {
+//                handleContext.setE(e);
+//                return;
+//            }
+//            androidStepHandler.getLog().sendStepLog(StepType.INFO, "", "迭代webview控件列表长度：" + webElements.size());
+//        }
+//
+//        if (handleContext.iteratorWebElement.hasNext()) {
+//            handleContext.currentIteratorWebElement = handleContext.iteratorWebElement.next();
+//            WebElement w = (WebElement) handleContext.currentIteratorWebElement;
+//            try {
+//                handleContext.setStepDes("当前迭代webview控件："+w.getTagName()+" "+w.getText()+" "+w.getAttribute("src"));
+//                handleContext.setDetail("");
+//            } catch (Exception e) {
+//                handleContext.setStepDes("当前迭代webview控件："+w.getTagName());
+//                handleContext.setDetail("");
+//            }
+//
+//        } else {
+//            handleContext.iteratorWebElement = null;
+//            handleContext.currentIteratorWebElement = null;
+//            androidStepHandler.getLog().sendStepLog(StepType.INFO, "", "迭代webview控件列表完毕...");
+//            handleContext.setStepDes("迭代webview控件列表 " + des);
+//            handleContext.setE(new Exception("exit while"));
+//        }
+    }
 
-        if (handleContext.iteratorWebElement == null) {
-            handleContext.setStepDes("迭代webview控件列表 " + des);
-            try {
-                webElements = androidStepHandler.findWebEleList(selector, pathValue);
-                handleContext.iteratorWebElement = webElements.iterator();
-            } catch (Throwable e) {
-                handleContext.setE(e);
-                return;
+
+    /**
+     * 模拟手势事件，up、down、move
+     * @param androidStepHandler
+     * @param handleContext
+     * @param des
+     * @param selector
+     * @param pathValue
+     * @param motionEventType
+     * @throws SonicRespException
+     */
+    public static void motionEventByEle(AndroidStepHandler androidStepHandler,HandleContext handleContext, String des, String selector, String pathValue, String motionEventType) throws SonicRespException {
+//TODO 后续扩展
+        //        try {
+//            AndroidElement webElement = androidStepHandler.findEle(selector, pathValue);
+//            int x = webElement.getRect().getX() + webElement.getRect().getWidth() / 2;
+//            int y = webElement.getRect().getY() + webElement.getRect().getHeight() / 2;
+//            handleContext.setStepDes("通过" + des + "触发" + motionEventType + "-Motion事件");
+//            handleContext.setDetail("对坐标" + x + "," + y + String.format("执行Motion事件(%s)", motionEventType));
+//            //input motionevent
+//            AndroidTouchHandler.motionEvent(androidStepHandler.getiDevice(), motionEventType, x, y);
+//        } catch (SonicRespException e) {
+//            handleContext.setE(e);
+//        }
+    }
+
+
+    /**
+     * 持续滑动，一直到指定元素可见
+     * 源代码只支持up 和 down，  扩展支持 left 和 right 滑动。并且原版本的 up 和 down 滑动是针对整个屏幕的，而不是针对元素的。
+     * 扩展内容：
+     * 1、up、down、left、right：如果控件pathvalue中携带了自定义的 @P 父元素，那么滑动时就是针对父元素滑动，不是针对整个屏幕。
+     * 2、如果没有携带@P 父元素，up和down保持针对整个屏幕滑动，left和right提示用户不合法
+     * @param androidStepHandler
+     * @param handleContext
+     * @param des
+     * @param selector
+     * @param pathValue
+     * @param maxTryTime
+     * @param direction
+     * @throws Exception
+     */
+    public static void scrollToEle(AndroidStepHandler androidStepHandler, HandleContext handleContext, String des, String selector, String pathValue, int maxTryTime, String direction) throws Exception {
+        if(pathValue.contains(FGF)){
+            String p = (pathValue.split(FGFRegex))[0].trim();
+            String extra = (pathValue.split(FGFRegex))[1].trim();
+            ////android.widget.TextView[@resource-id='com.sinovatech.unicom.ui:id/jingangqu_text' and @text='自助排障'] || @p=//android.support.v7.widget.RecyclerView[@resource-id='com.sinovatech.unicom.ui:id/jingangqu_recycleview']
+            if(extra.startsWith("@p=")){
+                String parentPath = extra.replace("@p=","");
+                //获取父元素
+                AndroidElement parentElement = androidStepHandler.findEle(selector, parentPath);
+                if (parentElement!= null) {
+                    int x = parentElement.getRect().getX();
+                    int y = parentElement.getRect().getY();
+                    int width = parentElement.getRect().getWidth();
+                    int height = parentElement.getRect().getHeight();
+
+                    if ("up".equals(direction)) {
+                        //滚动 input swipe
+                        AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), x + width/2, y + height * 2/3, x + width/2, y, 1000);
+                    }else if ("down".equals(direction)) {
+                        //滚动 input swipe
+                        AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), x + width/2, y, x + width/2, y + height * 2/3, 1000);
+
+                    }else if ("left".equals(direction)) {
+                        //滚动 input swipe
+                        AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), x + width * 2/3, y + height / 2, x , y + height / 2, 1000);
+
+                    }else if ("right".equals(direction)) {
+                        //滚动 input swipe
+                        AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), x, y + height / 2, x + width * 2/3, y + height / 2, 1000);
+
+                    }else{
+                        handleContext.setE(new Exception("未知方向类型设置或者不支持该方向的滚动"));
+                        throw new RuntimeException("exit while");
+                    }
+
+                }
+            }else{
+                throw new RuntimeException("exit while");
             }
-            androidStepHandler.getLog().sendStepLog(StepType.INFO, "", "迭代webview控件列表长度：" + webElements.size());
-        }
 
-        if (handleContext.iteratorWebElement.hasNext()) {
-            handleContext.currentIteratorWebElement = handleContext.iteratorWebElement.next();
-            WebElement w = (WebElement) handleContext.currentIteratorWebElement;
-            try {
-                handleContext.setStepDes("当前迭代webview控件："+w.getTagName()+" "+w.getText()+" "+w.getAttribute("src"));
-                handleContext.setDetail("");
-            } catch (Exception e) {
-                handleContext.setStepDes("当前迭代webview控件："+w.getTagName());
-                handleContext.setDetail("");
+        }else{
+            final int xOffset = 20;
+            //按原有逻辑处理
+            if ("up".equals(direction)) {
+                AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), xOffset, androidStepHandler.screenHeight * 2 / 3, xOffset, androidStepHandler.screenHeight / 3, 1000);
+
+            } else if ("down".equals(direction)) {
+                AndroidTouchHandler.swipe(androidStepHandler.getiDevice(), xOffset, androidStepHandler.screenHeight / 3, xOffset, androidStepHandler.screenHeight * 2 / 3, 1000);
+
+            } else {
+                handleContext.setE(new Exception("未知方向类型设置或者不支持该方向的滚动"));
+                throw new RuntimeException("exit while");
             }
-
-        } else {
-            handleContext.iteratorWebElement = null;
-            handleContext.currentIteratorWebElement = null;
-            androidStepHandler.getLog().sendStepLog(StepType.INFO, "", "迭代webview控件列表完毕...");
-            handleContext.setStepDes("迭代webview控件列表 " + des);
-            handleContext.setE(new Exception("exit while"));
         }
     }
 
