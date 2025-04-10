@@ -24,6 +24,7 @@ import org.cloud.sonic.agent.common.interfaces.IsHMStatus;
 import org.cloud.sonic.agent.common.interfaces.PlatformType;
 import org.cloud.sonic.agent.common.maps.AndroidDeviceManagerMap;
 import org.cloud.sonic.agent.common.maps.DevicesBatteryMap;
+import org.cloud.sonic.agent.tools.BytesTool;
 import org.cloud.sonic.agent.transport.TransportWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,11 +62,21 @@ public class AndroidDeviceStatusListener implements AndroidDebugBridge.IDeviceCh
             deviceDetail.put("isHm", IsHMStatus.IS_ANDROID);
         }
 
-        deviceDetail.put("size", AndroidDeviceBridgeTool.getScreenSize(device));
         deviceDetail.put("cpu", device.getProperty(IDevice.PROP_DEVICE_CPU_ABI));
         deviceDetail.put("manufacturer", device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER));
-        //修改by刘澍霖 增加设备的densityDpi
+
+        //修改by刘澍霖 增加设备的densityDpi，分别展示逻辑像素和物理像素
         deviceDetail.put("density", device.getProperty(IDevice.PROP_DEVICE_DENSITY));
+
+        String[] winSize = AndroidDeviceBridgeTool.getScreenSize(device).split("x");
+        int screenWidth = BytesTool.getInt(winSize[0]);
+        int screenHeight = BytesTool.getInt(winSize[1]);
+        int density = Integer.parseInt(device.getProperty(IDevice.PROP_DEVICE_DENSITY));
+        int logicWidth = (int) ((double) screenWidth / ((double) density / 160));
+        int logicHeight = (int) ((double) screenHeight / ((double) density / 160));
+
+        deviceDetail.put("size","逻辑像素："+logicWidth+"x"+logicHeight+" 物理像素："+screenWidth+"x"+screenHeight);
+
         TransportWorker.send(deviceDetail);
     }
 

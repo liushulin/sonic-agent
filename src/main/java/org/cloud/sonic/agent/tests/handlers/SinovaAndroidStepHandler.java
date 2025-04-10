@@ -129,7 +129,7 @@ public class SinovaAndroidStepHandler {
 
 
     /**
-     * 自定义 webview scroll 方法
+     * 自定义 webview scroll 方法，滚动到元素可见
      * 支持 swiper 组件，如果是swiper，使用swiper自己的方法滚动到下一页
      * @param androidStepHandler
      * @param handleContext
