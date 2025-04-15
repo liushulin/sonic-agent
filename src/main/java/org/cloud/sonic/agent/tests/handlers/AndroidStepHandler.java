@@ -593,6 +593,14 @@ public class AndroidStepHandler {
     }
 
     public void toWebView(HandleContext handleContext, String packageName, String process) {
+        toWebView(handleContext, packageName, process, false);
+    }
+
+    /**
+     * 修改记录：
+     * （1）增加retry重试机制，如果创建chromedriver失败，切换System.setProperty("webdriver.http.factory", "jdk-http-client")重新创建chromedriver。如果重试一次仍旧失败，抛出异常中止测试
+     */
+    public void toWebView(HandleContext handleContext, String packageName, String process, boolean retry) {
         packageName = TextHandler.replaceTrans(packageName, globalParams);
         process = TextHandler.replaceTrans(process, globalParams);
         handleContext.setStepDes("切换到" + packageName + " WebView");
@@ -604,7 +612,7 @@ public class AndroidStepHandler {
             String fullChromeVersion = AndroidDeviceBridgeTool.getFullChromeVersion(iDevice, packageName);
             if (fullChromeVersion != null) {
                 String majorChromeVersion = AndroidDeviceBridgeTool.getMajorChromeVersion(fullChromeVersion);
-                if (ChromeDriverMap.shouldUseJdkHttpClient(majorChromeVersion)) {
+                if (ChromeDriverMap.shouldUseJdkHttpClient(majorChromeVersion) || retry) {
                     System.setProperty("webdriver.http.factory", "jdk-http-client");
                 } else {
                     // 删除webdriver.http.factory配置选项的设置，否则测试完111以上的高版本，再切换回测试低版本会有问题
@@ -621,11 +629,18 @@ public class AndroidStepHandler {
                 chromeOptions.setExperimentalOption("androidProcess", process);
             }
             chromeOptions.setExperimentalOption("androidUseRunningApp", true);
+
             chromeDriver = new ChromeDriver(chromeDriverService, chromeOptions);
+
         } catch (Exception e) {
-            handleContext.setE(e);
+            if (!retry) {
+                toWebView(handleContext, packageName, process, true);
+            }else{
+                handleContext.setE(e);
+            }
         }
     }
+
 
     public void click(HandleContext handleContext, String des, String selector, String pathValue) {
         handleContext.setStepDes("点击" + des);
