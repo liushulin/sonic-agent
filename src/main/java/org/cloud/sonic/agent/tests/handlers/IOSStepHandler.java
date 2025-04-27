@@ -62,6 +62,8 @@ import org.springframework.util.CollectionUtils;
 
 import javax.imageio.stream.FileImageOutputStream;
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Future;
@@ -92,6 +94,8 @@ public class IOSStepHandler {
     private int screenWidth = 0;
     private int screenHeight = 0;
 
+    public SinovaAppiumService appiumService = new SinovaAppiumService();
+
     public String getTargetPackage() {
         return targetPackage;
     }
@@ -118,6 +122,22 @@ public class IOSStepHandler {
         Exception out = null;
         while (retry <= 4) {
             try {
+                //TODO 临时验证使用 --------
+//                JSONObject options = new JSONObject();
+//                options.put("platformName", "iOS");
+//                options.put("platformVersion", "18.4.1");
+//                options.put("deviceName", "刘澍霖iPhone11");
+//                options.put("udid", "00008030-001650D022B8802E");       // 键名需小写
+//                options.put("useNewWDA", false);
+//                options.put("noReset", true);
+//                options.put("automationName", "XCUITest");
+//                options.put("xcodeOrgId","juejiezhang");
+//                options.put("xcodeSigningId","Apple Developer");
+//                JSONArray bundleIdArray = new JSONArray();
+//                bundleIdArray.add("com.chinaunicom.mobilebusiness");    // 添加集合元素
+//                options.put("additionalWebviewBundleIds", bundleIdArray);
+                //------------------------
+
                 iosDriver = new IOSDriver("http://127.0.0.1:" + wdaPort);
                 break;
             } catch (Exception e) {
@@ -137,6 +157,18 @@ public class IOSStepHandler {
         screenWidth = size.getWidth();
         screenHeight = size.getHeight();
         log.sendStepLog(StepType.PASS, "连接 WebDriverAgent 成功", "");
+
+        //启动appium 服务
+        appiumService.startAppium();
+        boolean appiumServiceRunning = false;
+        int appiumServiceRetry = 0;
+        while (!appiumServiceRunning && appiumServiceRetry<100){
+            Thread.sleep(500);
+            appiumServiceRetry++;
+            appiumServiceRunning = appiumService.isAppiumRunning();
+        }
+        log.sendStepLog(StepType.PASS, "连接 appium独立服务 "+(appiumServiceRunning?"成功":"失败"), "");
+
     }
 
     public void setSnapshotMaxDepth(HandleContext handleContext, int depth) {
@@ -375,10 +407,19 @@ public class IOSStepHandler {
     }
 
     public void openApp(HandleContext handleContext, String appPackage) {
-        handleContext.setStepDes("打开应用");
-        appPackage = TextHandler.replaceTrans(appPackage, globalParams);
-        handleContext.setDetail("App包名： " + appPackage);
         try {
+            //TODO 临时测试用
+//            handleContext.setStepDes("切换到NativeAPP");
+//            int port = new URI(iosDriver.getWdaClient().getRemoteUrl()).getPort();
+//            if(iosDriver!=null){
+//                iosDriver.closeDriver();
+//            }
+//            startIOSDriver(udId, new URI(iosDriver.getWdaClient().getRemoteUrl()).getPort());
+
+            handleContext.setStepDes("打开应用");
+            appPackage = TextHandler.replaceTrans(appPackage, globalParams);
+            handleContext.setDetail("App包名： " + appPackage);
+
             iosDriver.appActivate(appPackage);
             targetPackage = appPackage;
         } catch (Exception e) {
@@ -1820,6 +1861,9 @@ public class IOSStepHandler {
             case "isExistEle" ->
                     isExistEle(handleContext, eleList.getJSONObject(0).getString("eleName"), eleList.getJSONObject(0).getString("eleType")
                             , eleList.getJSONObject(0).getString("eleValue"), step.getBoolean("content"));
+            //TODO 临时修改测试，后续删除
+//                    SinovaIOSStepHandler.toWebView(handleContext,iosDriver,false);
+
             case "isExistEleNum" -> isExistEleNum(handleContext, eleList.getJSONObject(0).getString("eleName"),
                     eleList.getJSONObject(0).getString("eleType"),
                     eleList.getJSONObject(0).getString("eleValue"),
