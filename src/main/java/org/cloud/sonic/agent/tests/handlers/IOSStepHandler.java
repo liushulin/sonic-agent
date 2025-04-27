@@ -94,7 +94,7 @@ public class IOSStepHandler {
     private int screenWidth = 0;
     private int screenHeight = 0;
 
-    public SinovaAppiumService appiumService = new SinovaAppiumService();
+//    public SinovaAppiumService appiumService = new SinovaAppiumService();
 
     public String getTargetPackage() {
         return targetPackage;
@@ -158,16 +158,16 @@ public class IOSStepHandler {
         screenHeight = size.getHeight();
         log.sendStepLog(StepType.PASS, "连接 WebDriverAgent 成功", "");
 
-        //启动appium 服务
-        appiumService.startAppium();
-        boolean appiumServiceRunning = false;
-        int appiumServiceRetry = 0;
-        while (!appiumServiceRunning && appiumServiceRetry<100){
-            Thread.sleep(500);
-            appiumServiceRetry++;
-            appiumServiceRunning = appiumService.isAppiumRunning();
-        }
-        log.sendStepLog(StepType.PASS, "连接 appium独立服务 "+(appiumServiceRunning?"成功":"失败"), "");
+        //TODO 临时测试使用 启动appium 服务
+//        appiumService.startAppium();
+//        boolean appiumServiceRunning = false;
+//        int appiumServiceRetry = 0;
+//        while (!appiumServiceRunning && appiumServiceRetry<100){
+//            Thread.sleep(500);
+//            appiumServiceRetry++;
+//            appiumServiceRunning = appiumService.isAppiumRunning();
+//        }
+//        log.sendStepLog(StepType.PASS, "连接 appium独立服务 "+(appiumServiceRunning?"成功":"失败"), "");
 
     }
 
